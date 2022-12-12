@@ -10,7 +10,8 @@ import (
 )
 
 const (
-	simpleYamlStream = "testdata/simple_stream.yaml"
+	simpleYAML       = "testdata/simple.yaml"
+	simpleYAMLStream = "testdata/simple_stream.yaml"
 )
 
 func TestNewWithDefaults(t *testing.T) {
@@ -21,23 +22,46 @@ func TestNewWithDefaults(t *testing.T) {
 	assert.Equal(t, ys, &yamlstream.Stream{Count: 0, Stream: nil})
 }
 
-func TestStreamCounter(t *testing.T) {
-	ys := yamlstream.New()
+func TestStreamCount(t *testing.T) {
 
-	f, _ := os.Open(simpleYamlStream)
-	defer f.Close()
+	tests := []struct {
+		Name     string
+		Filename string
+		Expected int
+	}{
+		{
+			Name:     "is correct for simple yaml file",
+			Filename: simpleYAML,
+			Expected: 1,
+		},
+		{
+			Name:     "is correct for simple yaml stream file",
+			Filename: simpleYAMLStream,
+			Expected: 3,
+		},
+	}
 
-	err := ys.Read(f)
-	assert.Nil(t, err)
+	for _, tc := range tests {
+		t.Run(tc.Name, func(t *testing.T) {
 
-	assert.Equal(t, 3, ys.Count)
+			ys := yamlstream.New()
+
+			f, _ := os.Open(tc.Filename)
+			defer f.Close()
+
+			err := ys.Read(f)
+			assert.Nil(t, err)
+
+			assert.Equal(t, tc.Expected, ys.Count)
+		})
+	}
 }
 
 func TestBytes(t *testing.T) {
 
 	ys := yamlstream.New()
 
-	f, _ := os.Open(simpleYamlStream)
+	f, _ := os.Open(simpleYAMLStream)
 	defer f.Close()
 
 	_ = ys.Read(f)
@@ -47,16 +71,35 @@ func TestBytes(t *testing.T) {
 
 func TestReadBytesEquality(t *testing.T) {
 
-	ys := yamlstream.New()
+	tests := []struct {
+		Name     string
+		Filename string
+	}{
+		{
+			Name:     "is equal for yaml stream",
+			Filename: simpleYAMLStream,
+		},
+		{
+			Name:     "is equal for regular yaml file",
+			Filename: simpleYAML,
+		},
+	}
 
-	f, _ := os.Open(simpleYamlStream)
-	defer f.Close()
+	for _, tc := range tests {
+		t.Run(tc.Name, func(t *testing.T) {
 
-	err := ys.Read(f)
-	assert.Nil(t, err)
+			ys := yamlstream.New()
 
-	fileAsBytes, _ := os.ReadFile(simpleYamlStream)
+			f, _ := os.Open(tc.Filename)
+			defer f.Close()
 
-	assert.True(t, bytes.Equal(ys.Bytes(), fileAsBytes))
+			err := ys.Read(f)
+			assert.Nil(t, err)
+
+			fileAsBytes, _ := os.ReadFile(tc.Filename)
+
+			assert.True(t, bytes.Equal(ys.Bytes(), fileAsBytes))
+		})
+	}
 
 }
