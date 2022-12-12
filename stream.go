@@ -7,11 +7,31 @@ import (
 	"io"
 )
 
+// Stream represents a stream of YAML, delimited by `---`, although there
+// is no requirement that this be the case, as a single Stream, i.e. a single
+// file, is still valid.
 type Stream struct {
+
+	// A YAML stream is an array of bytes arrays, each element is separated
+	// by the `---` delimiter.
 	Stream [][]byte
-	Count  int
+
+	// Count is the number of streams that are present in the provided stream.
+	// Note that this is not the number of delimiters present, but how many
+	// YAML files there would be if the file were to be split into separately.
+	//
+	// For example:
+	//
+	// hello: 'world'
+	// ---
+	// library: 'yaml-stream'
+	//
+	// This is a Count of 2.
+	Count int
 }
 
+// Bytes returns the given stream as a single byte array, this is effectively
+// similar to a call to `io.ReadFull` or `os.ReadFile`.
 func (s *Stream) Bytes() []byte {
 	b := &bytes.Buffer{}
 	for _, data := range s.Stream {
@@ -21,10 +41,17 @@ func (s *Stream) Bytes() []byte {
 	return b.Bytes()
 }
 
+// String returns the given stream in its string representated format.
+// It is expected to be the file as it looks to the user.
 func (s *Stream) String() string {
 	return string(s.Bytes())
 }
 
+// Read takes the provided stream and segments it into multiple
+// byte arrays for direct access, wrapped as a `Stream` type.
+// This makes the assumption that the delimiter to the stream is
+// `---\n`, i.e. three dashes and a newline character. It is the
+// initialisation point for the Stream.
 func (s *Stream) Read(r io.Reader) error {
 	rd := bufio.NewReader(r)
 
@@ -65,6 +92,10 @@ func (s *Stream) Read(r io.Reader) error {
 
 }
 
+// New will return a default Stream with default values.
+// There is no requirement to use this, as `&Stream{}` is
+// effectively the same. It serves as the standard entrypoint
+// to the library and creating the `Stream` type.
 func New() *Stream {
 	return &Stream{
 		Stream: nil,
