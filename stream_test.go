@@ -18,6 +18,7 @@ func TestNewWithDefaults(t *testing.T) {
 	ys := yamlstream.New()
 
 	assert.IsType(t, ys, &yamlstream.Stream{})
+	assert.Equal(t, ys, &yamlstream.Stream{Count: 0, Stream: nil})
 }
 
 func TestStreamCounter(t *testing.T) {
@@ -56,8 +57,6 @@ func TestReadBytesEquality(t *testing.T) {
 
 	fileAsBytes, _ := os.ReadFile(simpleYamlStream)
 
-    t.Logf("AsBytes: %s\n", ys.Bytes())
-    t.Logf("\nGot:%s\nWant:%s", ys.String(), string(fileAsBytes))
 	assert.True(t, bytes.Equal(ys.Bytes(), fileAsBytes))
 
 }
