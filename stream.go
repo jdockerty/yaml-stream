@@ -18,7 +18,7 @@ type Stream struct {
 
 	// Count is the number of streams that are present in the provided stream.
 	// Note that this is not the number of delimiters present, but how many
-	// YAML files there would be if the file were to be split into separately.
+	// YAML files there would be if the file were to be split separately.
 	//
 	// For example:
 	//
