@@ -5,6 +5,11 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+
+)
+
+var (
+	yamlDelimiter = []byte("---\n")
 )
 
 // Stream represents a stream of YAML, delimited by `---`, although there
@@ -28,6 +33,10 @@ type Stream struct {
 	//
 	// This is a Count of 2.
 	Count int
+}
+
+func (s *Stream) Get(index int) []byte {
+    return s.Stream[index]
 }
 
 // Bytes returns the given stream as a single byte array, this is effectively
@@ -73,7 +82,7 @@ func (s *Stream) Read(r io.Reader) error {
 			return fmt.Errorf("unable to read: %w", err)
 		}
 
-		if bytes.Equal(line, []byte("---\n")) {
+		if bytes.Equal(line, yamlDelimiter) {
 			s.Count += 1
 			s.Stream = append(s.Stream, b.Bytes())
 
