@@ -10,8 +10,11 @@ import (
 )
 
 const (
-	simpleYAML       = "testdata/simple.yaml"
-	simpleYAMLStream = "testdata/simple_stream.yaml"
+	simpleYAML            = "testdata/simple.yaml"
+	simpleYAMLStream      = "testdata/simple_stream.yaml"
+	simpleYAMLStreamOne   = "testdata/simple_stream_one.yaml"
+	simpleYAMLStreamTwo   = "testdata/simple_stream_two.yaml"
+	simpleYAMLStreamThree = "testdata/simple_stream_three.yaml"
 )
 
 func TestNewWithDefaults(t *testing.T) {
@@ -102,4 +105,50 @@ func TestReadBytesEquality(t *testing.T) {
 		})
 	}
 
+}
+
+func TestStreamGet(t *testing.T) {
+
+	tests := []struct {
+		Name               string
+		YAMLStreamFilename string
+		SegmentedFilename  string
+		Index              int
+	}{
+		{
+			Name:               "is correct for 0th index",
+			YAMLStreamFilename: simpleYAMLStream,
+			SegmentedFilename:  simpleYAMLStreamOne,
+			Index:              0,
+		},
+		{
+			Name:               "is correct for 1st index",
+			YAMLStreamFilename: simpleYAMLStream,
+			SegmentedFilename:  simpleYAMLStreamTwo,
+			Index:              1,
+		},
+		{
+			Name:               "is correct for 2nd index",
+			YAMLStreamFilename: simpleYAMLStream,
+			SegmentedFilename:  simpleYAMLStreamThree,
+			Index:              2,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.Name, func(t *testing.T) {
+
+			ys := yamlstream.New()
+
+			f, _ := os.Open(tc.YAMLStreamFilename)
+			defer f.Close()
+
+			err := ys.Read(f)
+			assert.Nil(t, err)
+
+			expectedAsBytes, _ := os.ReadFile(tc.SegmentedFilename)
+
+			assert.Equal(t, expectedAsBytes, ys.Get(tc.Index))
+		})
+	}
 }
