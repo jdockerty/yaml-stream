@@ -1,27 +1,64 @@
 package yamlstream
 
 import (
-	"bufio"
 	"bytes"
-	"fmt"
 	"io"
 
+	"gopkg.in/yaml.v3"
 )
 
 var (
 	yamlDelimiter = []byte("---\n")
 )
 
+// Document is a single YAML document.
+type Document map[string]interface{}
+
+// Bytes will return the byte array representation of the YAML document.
+// Note that this will include the YAML delimiter of '---' even if it was not 
+// originally included in order to allow the separation of multiple documents.
+func (d *Document) Bytes() []byte {
+
+	b := &bytes.Buffer{}
+
+	data, err := yaml.Marshal(d)
+	if err != nil {
+		panic(err)
+	}
+    // The YAML library does not include a delimiter to separate a document
+    // so it is added in by the library to ensure separation between other
+    // documents that may be present.
+	b.Write(yamlDelimiter) 
+	b.Write(data)
+
+	return b.Bytes()
+}
+
+// String returns the string representation of the YAML document.
+// This is usually expected to be how the file looks to the human eye, unless
+// there are no delimiters in place, in which case they will be added by the 
+// library.
+func (d *Document) String() string {
+	return string(d.Bytes())
+}
+
+// Get will retrieve a YAML document at a provided index.
+func (s *Stream) Get(index int) Document {
+	return s.Stream[index]
+}
+
 // Stream represents a stream of YAML, delimited by `---`, although there
 // is no requirement that this be the case, as a single Stream, i.e. a single
 // file, is still valid.
 type Stream struct {
 
-	// A YAML stream is an array of bytes arrays, each element is separated
-	// by the `---` delimiter.
-	Stream [][]byte
+	// Stream represents a stream of YAML. It is composed of zero or more YAML
+	// documents. Conceptually, this is similar to an array of YAML documents,
+	// able to be accessed at a particular index.
+	Stream []Document
 
-	// Count is the number of streams that are present in the provided stream.
+	// Count is the number of YAML documents that are present in the provided
+	// stream.
 	// Note that this is not the number of delimiters present, but how many
 	// YAML files there would be if the file were to be split separately.
 	//
@@ -35,16 +72,15 @@ type Stream struct {
 	Count int
 }
 
-func (s *Stream) Get(index int) []byte {
-    return s.Stream[index]
-}
-
 // Bytes returns the given stream as a single byte array, this is effectively
 // similar to a call to `io.ReadFull` or `os.ReadFile`.
+// Note that because a Document is separated by a delimiter, if they are not 
+// included in the file provided to `Read`, they will be included when being
+// called into a byte array.
 func (s *Stream) Bytes() []byte {
 	b := &bytes.Buffer{}
 	for _, data := range s.Stream {
-		b.Write(data)
+		b.Write(data.Bytes())
 	}
 
 	return b.Bytes()
@@ -56,49 +92,30 @@ func (s *Stream) String() string {
 	return string(s.Bytes())
 }
 
-// Read takes the provided stream and segments it into multiple
-// byte arrays for direct access, wrapped as a `Stream` type.
-// This makes the assumption that the delimiter to the stream is
-// `---\n`, i.e. three dashes and a newline character. It is the
-// initialisation point for the Stream.
+// Read takes a reader, such as a YAML file, that contains zero or more documents
+// and collects it into a singlular Stream.
 func (s *Stream) Read(r io.Reader) error {
-	rd := bufio.NewReader(r)
 
-	// Initialise count as 1 when passed a Reader, this covers
-	// the case where there are no delimiters since this is
-	// considered a "stream", i.e. a single file.
-	s.Count = 1
+	stream := make([]Document, 0)
 
-	b := &bytes.Buffer{}
+	d := yaml.NewDecoder(r)
 	for {
-		line, err := rd.ReadBytes('\n')
+
+		var document Document
+
+		err := d.Decode(&document)
 		if err != nil {
 			if err == io.EOF {
-				// Append the current buffer as we won't
-				// hit another delimiter to add it with the EOF.
-				s.Stream = append(s.Stream, b.Bytes())
 				break
 			}
-			return fmt.Errorf("unable to read: %w", err)
 		}
 
-		if bytes.Equal(line, yamlDelimiter) {
-			s.Count += 1
-			s.Stream = append(s.Stream, b.Bytes())
-
-			// Clear buffer for next delimiter
-			b = &bytes.Buffer{}
-		}
-
-		_, err = b.Write(line)
-		if err != nil {
-			return fmt.Errorf("unable to write data: %w", err)
-		}
-
+		stream = append(stream, document)
 	}
 
+	s.Stream = stream
+	s.Count = len(stream)
 	return nil
-
 }
 
 // New will return a default Stream with default values.
@@ -106,8 +123,5 @@ func (s *Stream) Read(r io.Reader) error {
 // effectively the same. It serves as the standard entrypoint
 // to the library and creating the `Stream` type.
 func New() *Stream {
-	return &Stream{
-		Stream: nil,
-		Count:  0,
-	}
+	return &Stream{}
 }
