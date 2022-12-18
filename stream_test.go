@@ -1,7 +1,6 @@
 package yamlstream_test
 
 import (
-	"bytes"
 	"os"
 	"testing"
 
@@ -72,7 +71,7 @@ func TestBytes(t *testing.T) {
 	assert.IsType(t, ys.Bytes(), make([]byte, 0))
 }
 
-func TestReadBytesEquality(t *testing.T) {
+func TestReadEquality(t *testing.T) {
 
 	tests := []struct {
 		Name     string
@@ -101,7 +100,8 @@ func TestReadBytesEquality(t *testing.T) {
 
 			fileAsBytes, _ := os.ReadFile(tc.Filename)
 
-			assert.True(t, bytes.Equal(ys.Bytes(), fileAsBytes))
+			assert.Equal(t, fileAsBytes, ys.Bytes())
+
 		})
 	}
 
@@ -147,8 +147,8 @@ func TestStreamGet(t *testing.T) {
 			assert.Nil(t, err)
 
 			expectedAsBytes, _ := os.ReadFile(tc.SegmentedFilename)
-
-			assert.Equal(t, expectedAsBytes, ys.Get(tc.Index))
+            yamlDoc := ys.Get(tc.Index)
+			assert.Equal(t, string(expectedAsBytes), yamlDoc.String())
 		})
 	}
 }
