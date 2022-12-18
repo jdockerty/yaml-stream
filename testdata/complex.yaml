@@ -1,0 +1,29 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: oomkilled
+  labels:
+    app: oomer
+  name: oomer
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: oomer
+  template:
+    metadata:
+      labels:
+        app: oomer
+    spec:
+      containers:
+        - image: ghcr.io/jdockerty/oomer:0.0.2
+          name: oomer
+          terminationMessagePath: "/tmp/oomed-pod.log"
+          resources:
+            requests:
+              cpu: '100m'
+              memory: '128Mi'
+            limits:
+              cpu: '100m'
+              memory: '128Mi'
