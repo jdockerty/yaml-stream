@@ -152,3 +152,39 @@ func TestStreamGet(t *testing.T) {
 		})
 	}
 }
+
+func TestStreamGetUnmarshal(t *testing.T) {
+
+	ys := yamlstream.New()
+
+	f, _ := os.Open(simpleYAMLStream)
+
+	err := ys.Read(f)
+	assert.Nil(t, err)
+
+	var streamOne map[string]int
+	err = ys.GetUnmarshal(0, &streamOne)
+	assert.Nil(t, err)
+
+	assert.Equal(t, 1, streamOne["stream_number"])
+
+	var streamTwo map[string]int
+	err = ys.GetUnmarshal(1, &streamTwo)
+	assert.Nil(t, err)
+	assert.Equal(t, 2, streamTwo["stream_number"])
+
+}
+
+func TestStreamGetUnmarshalFailsWithoutPointer(t *testing.T) {
+
+	ys := yamlstream.New()
+
+	f, _ := os.Open(simpleYAMLStreamOne)
+
+	err := ys.Read(f)
+	assert.Nil(t, err)
+
+	var streamOne map[string]string
+	err = ys.GetUnmarshal(0, streamOne)
+	assert.Error(t, err)
+}
