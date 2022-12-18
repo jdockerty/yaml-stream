@@ -14,6 +14,7 @@ const (
 	simpleYAMLStreamOne   = "testdata/simple_stream_one.yaml"
 	simpleYAMLStreamTwo   = "testdata/simple_stream_two.yaml"
 	simpleYAMLStreamThree = "testdata/simple_stream_three.yaml"
+	complexYAML           = "testdata/complex.yaml"
 )
 
 func TestNewWithDefaults(t *testing.T) {
@@ -151,4 +152,75 @@ func TestStreamGet(t *testing.T) {
 			assert.Equal(t, string(expectedAsBytes), yamlDoc.String())
 		})
 	}
+}
+
+func TestStreamGetUnmarshal(t *testing.T) {
+
+	ys := yamlstream.New()
+
+	f, _ := os.Open(simpleYAMLStream)
+
+	err := ys.Read(f)
+	assert.Nil(t, err)
+
+	var streamOne map[string]int
+	err = ys.GetUnmarshal(0, &streamOne)
+	assert.Nil(t, err)
+
+	assert.Equal(t, 1, streamOne["stream_number"])
+
+	var streamTwo map[string]int
+	err = ys.GetUnmarshal(1, &streamTwo)
+	assert.Nil(t, err)
+	assert.Equal(t, 2, streamTwo["stream_number"])
+
+}
+
+func TestStreamGetUnmarshalWithComplexType(t *testing.T) {
+	ys := yamlstream.New()
+
+	f, _ := os.Open(complexYAML)
+
+	err := ys.Read(f)
+	assert.Nil(t, err)
+
+	// Unfortunately we cannot use the actually appsv1.Deployment here as the
+	// Kubernetes objects have specific runtime information encoded into them;
+	// however, we can still use it as a partial struct in order to create the
+	// case of a more complicated YAML document.
+	//
+	// This is also a manifest I control within the jdockerty/oomer project.
+	var partialDeployment struct {
+		ApiVersion string `yaml:"apiVersion"`
+		Kind       string `yaml:"kind"`
+		Metadata   struct {
+			Namespace string `yaml:"namespace"`
+			Name      string `yaml:"name"`
+			Labels    struct{}
+		} `yaml:"metadata"`
+		Spec struct {
+			Replicas int `yaml:"replicas"`
+		} `yaml:"spec"`
+	}
+	err = ys.GetUnmarshal(0, &partialDeployment)
+
+	assert.Equal(t, "apps/v1", partialDeployment.ApiVersion)
+	assert.Equal(t, "Deployment", partialDeployment.Kind)
+	assert.Equal(t, "oomkilled", partialDeployment.Metadata.Namespace)
+	assert.Equal(t, 2, partialDeployment.Spec.Replicas)
+
+}
+
+func TestStreamGetUnmarshalFailsWithoutPointer(t *testing.T) {
+
+	ys := yamlstream.New()
+
+	f, _ := os.Open(simpleYAMLStreamOne)
+
+	err := ys.Read(f)
+	assert.Nil(t, err)
+
+	var streamOne map[string]string
+	err = ys.GetUnmarshal(0, streamOne)
+	assert.Error(t, err)
 }

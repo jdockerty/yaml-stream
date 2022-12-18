@@ -2,7 +2,9 @@ package yamlstream
 
 import (
 	"bytes"
+	"fmt"
 	"io"
+	"reflect"
 
 	"gopkg.in/yaml.v3"
 )
@@ -42,9 +44,13 @@ func (d *Document) String() string {
 	return string(d.Bytes())
 }
 
-// Get will retrieve a YAML document at a provided index.
-func (s *Stream) Get(index int) Document {
-	return s.Stream[index]
+// Unmarshal will unmarshal the document into the type provided in the out value.
+func (d *Document) Unmarshal(out interface{}) error {
+	err := yaml.Unmarshal(d.Bytes(), out)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // Stream represents a stream of YAML, delimited by `---`, although there
@@ -70,6 +76,28 @@ type Stream struct {
 	//
 	// This is a Count of 2.
 	Count int
+}
+
+// Get will retrieve a YAML document at a provided index.
+func (s *Stream) Get(index int) Document {
+	return s.Stream[index]
+}
+
+// GetUnmarshal will unmarshal the Document at the provided index into the type
+// that is provided by the 'out' value.
+func (s *Stream) GetUnmarshal(index int, out interface{}) error {
+
+	if reflect.ValueOf(out).Kind() != reflect.Pointer {
+		return fmt.Errorf("expected pointer (&) for 'to' value that was passed")
+	}
+
+	doc := s.Stream[index]
+	err := doc.Unmarshal(out)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Bytes returns the given stream as a single byte array, this is effectively
