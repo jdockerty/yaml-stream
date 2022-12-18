@@ -15,7 +15,7 @@ var (
 type Document map[string]interface{}
 
 // Bytes will return the byte array representation of the YAML document.
-// Note that this will include the YAML delimiter of '---' even if it was not 
+// Note that this will include the YAML delimiter of '---' even if it was not
 // originally included in order to allow the separation of multiple documents.
 func (d *Document) Bytes() []byte {
 
@@ -25,10 +25,10 @@ func (d *Document) Bytes() []byte {
 	if err != nil {
 		panic(err)
 	}
-    // The YAML library does not include a delimiter to separate a document
-    // so it is added in by the library to ensure separation between other
-    // documents that may be present.
-	b.Write(yamlDelimiter) 
+	// The YAML library does not include a delimiter to separate a document
+	// so it is added in by the library to ensure separation between other
+	// documents that may be present.
+	b.Write(yamlDelimiter)
 	b.Write(data)
 
 	return b.Bytes()
@@ -36,7 +36,7 @@ func (d *Document) Bytes() []byte {
 
 // String returns the string representation of the YAML document.
 // This is usually expected to be how the file looks to the human eye, unless
-// there are no delimiters in place, in which case they will be added by the 
+// there are no delimiters in place, in which case they will be added by the
 // library.
 func (d *Document) String() string {
 	return string(d.Bytes())
@@ -74,7 +74,7 @@ type Stream struct {
 
 // Bytes returns the given stream as a single byte array, this is effectively
 // similar to a call to `io.ReadFull` or `os.ReadFile`.
-// Note that because a Document is separated by a delimiter, if they are not 
+// Note that because a Document is separated by a delimiter, if they are not
 // included in the file provided to `Read`, they will be included when being
 // called into a byte array.
 func (s *Stream) Bytes() []byte {

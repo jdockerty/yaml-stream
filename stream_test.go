@@ -147,7 +147,7 @@ func TestStreamGet(t *testing.T) {
 			assert.Nil(t, err)
 
 			expectedAsBytes, _ := os.ReadFile(tc.SegmentedFilename)
-            yamlDoc := ys.Get(tc.Index)
+			yamlDoc := ys.Get(tc.Index)
 			assert.Equal(t, string(expectedAsBytes), yamlDoc.String())
 		})
 	}
