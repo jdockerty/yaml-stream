@@ -108,6 +108,16 @@ func TestReadEquality(t *testing.T) {
 
 }
 
+func TestReadWithOpen(t *testing.T) {
+
+	ys := yamlstream.New()
+
+	err := ys.ReadWithOpen(simpleYAMLStream)
+	assert.Nil(t, err)
+
+	assert.Equal(t, 3, ys.Count)
+}
+
 func TestStreamGet(t *testing.T) {
 
 	tests := []struct {
