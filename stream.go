@@ -29,7 +29,7 @@ func (d *Document) Bytes() []byte {
 		panic(err)
 	}
 	// The YAML library does not include a delimiter to separate a document
-	// so it is added in by the library to ensure separation between other
+	// so it is added in by yaml-stream to ensure separation between other
 	// documents that may be present.
 	b.Write(yamlDelimiter)
 	b.Write(data)
