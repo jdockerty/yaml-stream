@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"os"
 	"reflect"
 
 	"gopkg.in/yaml.v3"
@@ -143,6 +144,26 @@ func (s *Stream) Read(r io.Reader) error {
 
 	s.Stream = stream
 	s.Count = len(stream)
+	return nil
+}
+
+// ReadWithOpen is a convenience function which wraps the utility of Read alongside
+// the opening of a file, allowing the caller to simply pass a path to a file.
+func (s *Stream) ReadWithOpen(filename string) error {
+
+	f, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	// The file can be closed since it is no longer required after being
+	// successfully read.
+	defer f.Close()
+
+	err = s.Read(f)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
