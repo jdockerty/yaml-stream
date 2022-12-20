@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"os"
 	"reflect"
 
 	"gopkg.in/yaml.v3"
@@ -28,7 +29,7 @@ func (d *Document) Bytes() []byte {
 		panic(err)
 	}
 	// The YAML library does not include a delimiter to separate a document
-	// so it is added in by the library to ensure separation between other
+	// so it is added in by yaml-stream to ensure separation between other
 	// documents that may be present.
 	b.Write(yamlDelimiter)
 	b.Write(data)
@@ -143,6 +144,26 @@ func (s *Stream) Read(r io.Reader) error {
 
 	s.Stream = stream
 	s.Count = len(stream)
+	return nil
+}
+
+// ReadWithOpen is a convenience function which wraps the utility of Read alongside
+// the opening of a file, allowing the caller to simply pass a path to a file.
+func (s *Stream) ReadWithOpen(filename string) error {
+
+	f, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	// The file can be closed since it is no longer required after being
+	// successfully read.
+	defer f.Close()
+
+	err = s.Read(f)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
