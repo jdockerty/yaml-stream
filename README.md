@@ -54,6 +54,20 @@ func main() {
 }
 ```
 
-
 When dealing with complex types, it is necessary to instead use a `map[string]interface{}` type or
 unmarshal into a `struct` when the schema is known in advance.
+
+
+#### CLI
+
+Using this library, you can also utilise the CLI tool, available in the `cmd/ys` package, to print out the YAML document
+which is contained within a stream.
+
+For example
+
+```
+go run cmd/ys/cmd.go -filename testdata/simple_stream.yaml
+go run cmd/ys/cmd.go -filename testdata/simple_stream.yaml -index 2
+```
+
+By default, the first document is printed at index 0. The YAML stream is treated as an array of documents.
