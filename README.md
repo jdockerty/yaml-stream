@@ -66,8 +66,8 @@ which is contained within a stream.
 For example
 
 ```
-go run cmd/ys/ys.go -filename testdata/simple_stream.yaml
-go run cmd/ys/ys.go -filename testdata/simple_stream.yaml -index 2
+go run cmd/ys/cmd.go -filename testdata/simple_stream.yaml
+go run cmd/ys/cmd.go -filename testdata/simple_stream.yaml -index 2
 ```
 
 By default, the first document is printed at index 0. The YAML stream is treated as an array of documents.
