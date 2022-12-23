@@ -60,7 +60,7 @@ unmarshal into a `struct` when the schema is known in advance.
 
 #### CLI
 
-Using this library, you can also utilise the CLI tool, available in the `cmd` package, to print out the YAML document
+Using this library, you can also utilise the CLI tool, available in the `cmd/ys` package, to print out the YAML document
 which is contained within a stream.
 
 For example
